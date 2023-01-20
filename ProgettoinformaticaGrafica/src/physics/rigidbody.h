@@ -39,13 +39,13 @@ public:
 
 	RigidBody(std::string modelId,
 		glm::vec3 size = glm::vec3(1.0f),
-		float mass = 1.0f, 
-		glm::vec3 pos = glm::vec3(0.0f), 
+		float mass = 1.0f,
+		glm::vec3 pos = glm::vec3(0.0f),
 		glm::vec3 rot = glm::vec3(0.0f));
 
 	bool operator==(RigidBody rb);
 	bool operator==(std::string id);
-	
+
 	void update(float dt);
 
 	void applyForce(glm::vec3 force);

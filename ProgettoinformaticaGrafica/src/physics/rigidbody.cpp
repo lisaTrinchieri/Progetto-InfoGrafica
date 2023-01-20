@@ -12,9 +12,10 @@ bool RigidBody::operator==(std::string id) {
 	return instanceId == id;
 }
 
+
 RigidBody::RigidBody()
 	: state(0)
-{ }
+{ }  
 
 RigidBody::RigidBody(std::string modelId, glm::vec3 size, float mass, glm::vec3 pos, glm::vec3 rot)
 	: modelId(modelId), size(size), mass(mass), pos(pos), rot(rot), velocity(glm::vec3(0.0f)), acceleration(glm::vec3(0.0f)), state(0)

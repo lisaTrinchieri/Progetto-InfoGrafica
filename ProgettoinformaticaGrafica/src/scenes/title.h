@@ -3,32 +3,24 @@
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
-#include "../graphics/text.h"
 
 #include "basescene.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "../graphics/text.h"
 
-enum class MenuState
+enum class TitleState
 {
-	TITLE,
+	DISPLAY,
 	MAIN_MENU,
-	NEW_GAME,
-	CREDITS,
-	RULES
 };
 
-struct Score
-{
-	std::string points;
-};
-
-class Menu : public BaseScene
+class Title : public BaseScene
 {
 public:
-	Menu(int glfwVersionMajor, int glfwVersionMinor, const char* title, unsigned int scrWidth, unsigned int scrHeight);
+	Title(int glfwVersionMajor, int glfwVersionMinor, const char* title, unsigned int scrWidth, unsigned int scrHeight);
 
 	virtual bool init();
 
@@ -41,16 +33,18 @@ public:
 
 	virtual void cleanup();
 
-	MenuState currentMenuState;
+	void renderText();
+	void textCentered(std::string text, int n);
+	bool buttonCentered(const char* label, float alignment);
 
-	bool buttonCentered(const char* label, float alignment = 0.5f);
-
-	void textCentered(std::string text);
-    void renderText();
+	TitleState currentTitleState;
 
 private:
 	TextRenderer textRenderer;
 	Shader textShader;
-	
-};
 
+	
+
+
+};
+#pragma once

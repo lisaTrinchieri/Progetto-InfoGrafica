@@ -25,7 +25,7 @@ BaseScene::BaseScene(int glfwVersionMajor, int glfwVersionMinor, const char* tit
 	BaseScene::scrWidth = scrWidth;
 	BaseScene::scrHeight = scrHeight;
 
-	setBackgroundColor(0.1f, 0.15f, 0.15f, 1.0f);
+	setBackgroundColor(223, 146, 40, 255);
 
 	BaseScene::instances++;
 }

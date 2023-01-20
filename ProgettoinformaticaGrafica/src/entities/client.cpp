@@ -1,32 +1,36 @@
-#include "enemy.h"
+#include "client.h"
+#include "glass.h"
 
 
-Enemy::Enemy()
-	: EntityBase("enemy", "enemy", nullptr),
-	respawnDelay(15.0f),
-	respawnTimer(respawnDelay),
-	maxSpeed(10.0f),
-	speed(2),
-	shootDelay(2.0f),
-	shootTimer(shootDelay)
+
+Client::Client(const std::string& name, const std::string& modelId, Scene* scene)
+	: name(name), modelId(modelId), scene(scene),
+	distance(0.f)
+	minDistance(1.5f);
+    respawnDelay(5.0f),
+    respawnTimer(respawnDelay),
+    speed(1),
+    speedDelay(3.0f)
+    drinkTime(2.0f);
+    glassDelay(drinkTime);
+    exitedFromPub(false);
+    glassReceived(false);
 {
 
 }
 
-Enemy::Enemy(const std::string& modelId, Scene* scene)
-	: EntityBase("enemy", modelId, scene),
-	respawnDelay(15.0f),
-	respawnTimer(respawnDelay),
-	maxSpeed(10.0f),
-	speed(2.0f),
-	shootDelay(2.0f),
-	shootTimer(shootDelay)
-{ }
+void Client::init(glm::vec3 size, float mass, glm::vec3 pos)
+{
+	rigidBody = scene->generateInstance(modelId, size, mass, pos);
+}
 
-void Enemy::setPath(glm::vec3 start, glm::vec3 end)
+
+void Client::setPath(glm::vec3 start, glm::vec3 end)
 {
 	this->start = start;
 	this->end = end;
+
+	rigidBody -> pos = 
 	this->speed = (speed > maxSpeed) ? maxSpeed : speed;
 	rigidBody->velocity = glm::normalize(end - start) * speed;
 	glm::vec3 v = rigidBody->velocity;
@@ -34,32 +38,48 @@ void Enemy::setPath(glm::vec3 start, glm::vec3 end)
 	rigidBody->rot = glm::vec3(0.0f, glm::half_pi<float>() - yaw, 0.0f);
 }
 
-void Enemy::init(glm::vec3 size, float mass, glm::vec3 pos)
+void Client::init(glm::vec3 size, float mass, glm::vec3 pos)
 {
 	EntityBase::init(size, mass, pos);
-	shootTimer = shootDelay;
+	distance = 0.f;
+	glassReceived=false;
 }
 
-void Enemy::update(double dt)
+void Client::update(double dt)
 {
-	if (rigidBody && !States::isActive(&rigidBody->state, INSTANCE_DEAD))
+	if (rigidBody)
 	{
-		// if the enemy is alive
-		if (length(end - rigidBody->pos) <= 0.1f)
-		{
-			setPath(end, start);
-		}
 
-		if (scene && scene->getActiveCamera())
-		{
-			Camera* camera = scene->getActiveCamera();
-			float dist = glm::length(rigidBody->pos - camera->cameraPos);
-			if (dist <= EnemySeeDistance)
+		if (scene)
+		{  
+			this->distance = glm::length(start - rigidBody->pos);
+
+			if (glassReceived)
 			{
+				float vel = glass->speedToGo;
+				rigidBody->velocity = vel;
+
+
+				if (distance <= minDistance)
+				{
+					this->exitedFromPub = true;
+					glassObj->exitedFromPub = true;
+
+				}
+				else
+				{
+
+					setPath(rigidBody->pos - end);
+
+				}
+
+
+
+
 				//std::cout << "Player nearby\n";
 				if (shootTimer <= 0.0f)
 				{
-					//std::cout << "Shooting\n";
+					
 					RigidBody* projectile_rb = scene->generateInstance("projectile", glm::vec3(.1f), 0.50f, rigidBody->pos);
 					if (projectile_rb) {
 						// instance generated

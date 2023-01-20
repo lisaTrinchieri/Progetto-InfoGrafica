@@ -12,6 +12,7 @@
 #include "../io/mouse.h"
 
 enum class SceneType {
+	TITLE,
 	MENU,
 	GAME
 };

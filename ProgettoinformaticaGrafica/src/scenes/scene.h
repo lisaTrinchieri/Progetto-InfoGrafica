@@ -21,17 +21,23 @@
 #include "../algorithms/trie.hpp"
 
 #include "../entities/entitybase.h"
+
+#include "../entities/client.h"
+#include "../entities/glass.h"
+#include "../entities/player.h"
+
 #include "../physics/rigidbody.h"
 #include <queue>
 #include "../graphics/text.h"
 
 class Model;
-class EntityBase;
+//class EntityBase;
 
 enum class GameState
 {
 	GAME_OVER,
-	PLAYING
+	PLAYING,
+	PAUSE,
 };
 
 class Scene : public BaseScene
@@ -39,7 +45,9 @@ class Scene : public BaseScene
 public:
 	std::map<std::string, Model*> models;
 	trie::Trie<RigidBody*> instances;
-	std::vector<EntityBase*> entities;
+
+	/*std::vector<Client*> clients;
+	std::vector<Glass*> glasses;  */
 
 	std::vector<RigidBody*>instancesToDelete;
 
@@ -53,8 +61,6 @@ public:
 
 	Scene(int glfwVersionMajor, int glfwVersionMinor,
 		const char* title, unsigned int scrWidth, unsigned int scrHeight);
-
-	~Scene();
 
 	/*
 	*	initialization
@@ -99,7 +105,9 @@ public:
 	*/
 
 	// add entity to scene
-	void addEntity(EntityBase* entity);
+	//void addPlayer(Player* entity);
+	/*void addClient(Client entity);
+	void addGlass(Glass entity); */
 
 	// add model to scene models array
 	void registerModel(Model* model);
@@ -132,16 +140,10 @@ public:
 
 	const int getPoints() const;
 
-	void removeAxe();
-	const unsigned int getAxes()const;
-	void addAxes(const unsigned int axes);
-
 	/*
 		cleanup method
 	*/
 	virtual void cleanup();
-
-	Camera* getActiveCamera();
 
 	/*
 		lights
@@ -156,12 +158,13 @@ public:
 	// direction light
 	DirLight* dirLight;
 	bool dirLightActive;
+	
 
+	void handleGlassCollision(BoundingRegion& br);
 	/*
-		camera
+		player
 	*/
 
-	std::vector<Camera*> cameras;
 	unsigned int activeCamera;
 	glm::mat4 view;
 	glm::mat4 projection;
@@ -173,18 +176,16 @@ private:
 	void updateBoundings(double dt);
 	void updateInstancies(double dt);
 
-	void handleCameraCollision(RigidBody& other);
-	void handleAxeCollision(BoundingRegion& br);
-	void handleProjectileCollision(BoundingRegion& br);
-
-	unsigned int axes;
 
 	unsigned int points;
+	unsigned int clientsServed;
 	unsigned int lives;
+	unsigned int glassesCollected;
+	unsigned int glassesServed;
 
 	TextRenderer textRenderer;
 	Shader textShader;
 
-	BoundingRegion* cameraBR;
-	BoundingRegion* ExitBR;
+	BoundingRegion* playerBR;
+	glm::vec3 playerPos;
 };

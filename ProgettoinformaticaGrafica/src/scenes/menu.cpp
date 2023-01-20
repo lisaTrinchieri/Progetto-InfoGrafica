@@ -14,10 +14,11 @@ static void glfw_error_callback(int error, const char* description)
 }
 
 Menu::Menu(int glfwVersionMajor, int glfwVersionMinor, const char* title, unsigned int scrWidth, unsigned int scrHeight)
-	:BaseScene(glfwVersionMajor, glfwVersionMinor, title, scrWidth, scrHeight)	
+	:BaseScene(glfwVersionMajor, glfwVersionMinor, title, scrWidth, scrHeight), textRenderer(TextRenderer("assets/fonts/comic.ttf", 48))
 {
 	sceneType = SceneType::MENU;
-	currentMenuState = MenuState::MAIN_MENU;
+	currentMenuState = MenuState::TITLE;
+
 }
 
 bool Menu::init() {
@@ -27,11 +28,15 @@ bool Menu::init() {
 		IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
-			ImGui::StyleColorsDark();
+			//ImGui::StyleColorsLight();
 			if (ImGui_ImplGlfw_InitForOpenGL(window, true)) {
 				return ImGui_ImplOpenGL3_Init("#version 130");
 			}
 	}
+
+	textRenderer.init();
+	textShader = Shader("assets/shaders/glyph_vs.glsl", "assets/shaders/glyph_fs.glsl");
+
 	return false;
 }
 
@@ -73,96 +78,88 @@ void Menu::render()
 	//ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 	//ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 	char buf1[64] = "";
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImVec4* colors = ImGui::GetStyle().Colors;
+
+	ImGui::GetStyle().WindowRounding = 0.0f;
+	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	ImGui::GetStyle().WindowTitleAlign = ImVec2(0.5, 0.5);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.6f, 0.30f, 0.00f, 0.9f);
+
+	ImGui::Text("");
+	ImGui::Text("");
+
 	switch (currentMenuState)
 	{
-	case MenuState::MAIN_MENU:
-		if (buttonCentered("New Game"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+	case MenuState :: TITLE:
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		//textRenderer.render(textShader, "TAPPER", 140.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		textCentered("...Tap here to go on...");
+		if (buttonCentered("START", 0.5f))
 		{
-			currentMenuState = MenuState::GET_NAME;
+			currentMenuState = MenuState::MAIN_MENU;
 		}
-		if (buttonCentered(" Rules  "))
+		break;
+	case MenuState::MAIN_MENU:
+		if (buttonCentered(" PLAY "))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+		{
+			currentMenuState = MenuState::NEW_GAME;
+		}
+		if (buttonCentered(" Rules "))
 		{
 			currentMenuState = MenuState::RULES;
 		}
-		if (buttonCentered(" Leaderboard  "))
-		{
-			if (scores.empty())
-			{
-				// File pointer
-				std::fstream fin;
-
-				// Open an existing file
-				fin.open("leaderboard.txt", std::ios::in);
-
-				// Read the Data from the file
-				// as String Vector
-				std::vector<std::string> row;
-				std::string line, word, temp;
-
-				while (getline(fin, line)) {
-
-					row.clear();
-
-					//std::cout << line << std::endl;
-
-					// used for breaking words
-					std::stringstream s(line);
-
-					// read every column data of a row and
-					// store it in a string variable, 'word'
-					while (std::getline(s, word, ',')) {
-
-						// add all the column data
-						// of a row to a vector
-						row.push_back(word);
-						//std::cout << word << std::endl;
-					}
-					scores.push_back(Score{ row[0], row[1], row[2] });
-
-				}
-				fin.close();
-				sortScores();
-			}
-			
-
-			currentMenuState = MenuState::LEADERBOARD;
-		}
-		if (buttonCentered(" Credits"))
+		if (buttonCentered(" Credits "))
 		{
 			currentMenuState = MenuState::CREDITS;
 		}
-		if (buttonCentered("  Close "))
+		if (buttonCentered("  EXIT "))
 		{
 			setShouldClose(true);
 		}
 		break;
-	case MenuState::GET_NAME:
-		textCentered("Insert Player Name");
-		if (textInputCentered("", buf1, 64, ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue))
-		{
-			BaseScene::playerName = std::string(buf1);
-			currentMenuState = MenuState::NEW_GAME;
-		}
-		break;
-	case MenuState::LEADERBOARD:
-		textCentered("Hall of Fame");
-		for (int i = 0; i < scores.size(); ++i)
-		{
-			textCentered(std::to_string(i) + ". " + scores[i].name + " " + scores[i].time + "s " + scores[i].points + " points");
-		}
-		break;
 	case MenuState::CREDITS:
-		textCentered("02BBHIOV - Informatica Grafica - Anno Accademico 2020/21");
 		ImGui::Text("");
-		textCentered("Professore titolare: Fabrizio Lamberti");
-		textCentered("Esercitatore: Alberto Cannavo'");
 		ImGui::Text("");
-		textCentered("Progetto Gruppo 20 - The Shining");
-		textCentered("Manuel Pepe - s281221");
-		textCentered("Riccardo Malvicino - s290338");
-		textCentered("Emanuele Zacheo - s290260");
 		ImGui::Text("");
-		ImGui::Text("Press ESC to return to main menu...");
+		textCentered("Informatica Grafica");
+	    textCentered("Anno Accademico 2022 / 23");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		textCentered("TAPPER");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text(" Progetto d'esame di : ");
+		ImGui::BulletText(" Claudia Gasparre - ");
+		ImGui::BulletText(" Emanuele Marcantonio - ");
+		ImGui::BulletText(" Lisa Trinchieri - ");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		textCentered("Press here to return to main menu...");
+		if (buttonCentered(" <- BACK ", 0.5f))
+		{
+			currentMenuState = MenuState::MAIN_MENU;
+		}
 		break;
 	case MenuState::RULES:
 		textCentered("Esci dal labirinto evitando o sconfiggendo i mostri.");
@@ -175,15 +172,18 @@ void Menu::render()
 		ImGui::Text("");
 		textCentered("Esci dal labirinto sconfiggendo piu' nemici possibile per entrare nella leaderboard!");
 		ImGui::Text("");
-		ImGui::Text("Press ESC to return to main menu...");
+		ImGui::Text("");
+		ImGui::Text("");
+		textCentered("Press here to return to main menu...");
+		if (buttonCentered(" <- BACK ", 0.5f))
+		{
+			currentMenuState = MenuState::MAIN_MENU;
+		}
 		break;
 	default:
 		break;
 	}
-	//ImGui::SameLine();
-	//ImGui::Text("counter = %d", counter);
 
-	//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
 	// Rendering
@@ -198,6 +198,13 @@ void Menu::update()
 	glClearColor(background.r, background.g, background.b, background.a);
 	glClear(GL_COLOR_BUFFER_BIT);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Menu::renderText()
+{
+	textRenderer.render(textShader, "TAPPER", 40.0f, 530.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.5f));
+	
+
 }
 
 void Menu::cleanup()
@@ -226,13 +233,7 @@ bool Menu::buttonCentered(const char* label, float alignment)
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 25);
 
 	return ImGui::Button(label, ImVec2(BaseScene::scrWidth / 5, BaseScene::scrHeight / 10));
-}
-
-void Menu::sortScores()
-{
-	std::sort(scores.begin(), scores.end(), [](const Score& lhs, const Score& rhs) {
-		return lhs.points > rhs.points;
-	});
+		//ImGui::ImageButton(&txtid->"images/whiteButton.png", ImVec2(BaseScene::scrWidth / 5, BaseScene::scrHeight / 10), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1));
 }
 
 void Menu::textCentered(std::string text) {
@@ -246,35 +247,25 @@ void Menu::textCentered(std::string text) {
 	ImGui::Text("");
 }
 
-bool Menu::textInputCentered(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags)
-{
-	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BaseScene::scrWidth/5);
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 25);
-	return ImGui::InputText(label, buf, buf_size, flags);
-}
-
 void Menu::processInput(float dt)
 {
 	if (Keyboard::keyWentDown(GLFW_KEY_ESCAPE)) {
 		switch (currentMenuState)
 		{
+		case MenuState::TITLE:
+			setShouldClose(true);
+			break;
 		case MenuState::MAIN_MENU:
 			setShouldClose(true);
 			break;
 		case MenuState::NEW_GAME:
 			break;
-		case MenuState::GET_NAME:
-			currentMenuState = MenuState::MAIN_MENU;
-			break;
-		case MenuState::CREDITS:
+	/*	case MenuState::CREDITS:
 			currentMenuState = MenuState::MAIN_MENU;
 			break;
 		case MenuState::RULES:
 			currentMenuState = MenuState::MAIN_MENU;
-			break;
-		case MenuState::LEADERBOARD:
-			currentMenuState = MenuState::MAIN_MENU;
-			break;
+			break;  */
 		default:
 			setShouldClose(true);
 			break;
